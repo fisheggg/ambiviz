@@ -32,8 +32,8 @@ markers = [
 [tool.ruff]
 ignore = ["F401"]
 
-[tool.setuptools]
-packages = ["ambiviz"]
+[tool.setuptools.packages.find]
+where = ["."]
 
 
 [dependency-groups]
