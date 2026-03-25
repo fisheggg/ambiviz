@@ -1,6 +1,6 @@
 [project]
 name = "ambiviz"
-version = "0.0.1"
+version = "0.0.1.post1"
 description = "Visualization tools for ambisonic audio and 360 video"
 readme = "README.md"
 requires-python = ">=3.9"
