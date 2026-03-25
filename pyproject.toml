@@ -1,0 +1,42 @@
+[project]
+name = "ambiviz"
+version = "0.0.1"
+description = "Visualization tools for ambisonic audio and 360 video"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Arthur Jinyue Guo", email = "jinyue.guo@imv.uio.no"},
+]
+dependencies = [
+    "numpy>=2.0.2",
+    "matplotlib>=3.7",
+    "librosa>=0.10",
+    "torchaudio>=2.0",
+    "opencv-python>=4.8",
+    "Pillow>=10.0",
+    "tqdm>=4.0",
+    "scipy>=1.10",
+    "scienceplots>=2.2.1",
+    "musicalgestures>=1.3.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that require real audio/video files and ffmpeg (deselect with '-m not integration')",
+]
+
+[tool.ruff]
+ignore = ["F401"]
+
+[tool.setuptools]
+packages = ["ambiviz"]
+
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.31.0",
+    "pytest>=8.4.2",
+]
