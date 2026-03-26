@@ -8,6 +8,18 @@
 Visualization tools for ambisonic audio (and 360 video).
 
 
+## Gallery
+
+### Anglegram
+![](figures/anglegram.png)
+
+### Directogram
+![](figures/directogram.png)
+
+### Audio Energy Map (AEM)
+![](figures/aem.png)
+
+
 ## References
 
 - The core ambisonics decoder is modified from [https://github.com/pedro-morgado/spatialaudiogen](https://github.com/pedro-morgado/spatialaudiogen).
