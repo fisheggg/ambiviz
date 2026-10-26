@@ -34,6 +34,8 @@ def compute_anglegram_from_aem(
         ), "If aem_path is not provided, other parameters should not be None."
     if aem_path is not None:
         data = np.load(aem_path)
+        # phi_mesh and nu_mesh shape: (n_nu, n_phi)
+        # aem shape: (n_frames, n_nu, n_phi)
         time_stamp, phi_mesh, nu_mesh, aem = (
             data["time_stamp"],
             data["phi_mesh"],
@@ -259,6 +261,7 @@ def anglegram(
     logger.debug(f"Plotting anglegram. Save path: {save_path}")
     if title is None:
         title = os.path.basename(audio_path)
+        title = f"Anglegram of {title}"
 
     ax, *_ = plot_anglegram(
         timestamp,

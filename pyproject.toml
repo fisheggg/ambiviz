@@ -1,24 +1,25 @@
 [project]
 name = "ambiviz"
-version = "0.0.1.post1"
+version = "0.0.2"
 description = "Visualization tools for ambisonic audio and 360 video"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Arthur Jinyue Guo", email = "jinyue.guo@imv.uio.no"},
 ]
 dependencies = [
-    "numpy>=2.0.2",
     "matplotlib>=3.7",
     "librosa>=0.10",
-    "torchaudio>=2.0",
     "opencv-python>=4.8",
     "Pillow>=10.0",
     "tqdm>=4.0",
     "scipy>=1.10",
     "scienceplots>=2.2.1",
     "musicalgestures>=1.3.3",
-    "torch>=2.8.0",
+    "torch>=2.5",
+    "torchaudio>=2.5",
+    "torchcodec>=0.1",
+    "numpy>=2.0.2",
 ]
 
 [project.optional-dependencies]
