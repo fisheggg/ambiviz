@@ -96,15 +96,19 @@ def compute_aem(
     if sr_ != sr:
         raise ValueError(f"Audio files have different sample rates: {sr_} and {sr}.")
 
-    # compute the timestamp of each AEM frame
-    time_stamp = np.arange(0, y.shape[1] - audio_frame_length, audio_hop_length) / sr_
-
-    # compute aem
-    # aem shape:
+    # Compute AEM first.
+    # AEM shape:
     # (n_frames, n_phi, n_nu) in aem mode
     # (n_frames, n_phi, n_nu, n_mels) in melaem mode
+    # Its first dimension is the actual number of analysis frames.
     aem = aemg.compute(y.T)
-    # assert aem.shape[0] == len(time_stamp)
+
+    # Generate one timestamp for each AEM frame.
+    time_stamp = (
+        np.arange(aem.shape[0], dtype=float)
+        * audio_hop_length
+        / sr_
+    )
 
     # save aem
     if save_dir is not None:
