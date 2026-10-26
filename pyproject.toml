@@ -1,7 +1,7 @@
 [project]
 name = "ambiviz"
 version = "0.0.2"
-description = "Visualization tools for ambisonic audio and 360 video"
+description = "Visualization tools for ambisonic audio and 360 video."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
