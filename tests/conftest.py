@@ -1,4 +1,5 @@
 """Shared fixtures for ambiviz tests."""
+
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -8,7 +9,7 @@ import pytest
 N_VIDEO_FRAMES = 4
 VIDEO_H = 8
 VIDEO_W = 16
-AEM_N_NU = 9    # elevation bins
+AEM_N_NU = 9  # elevation bins
 AEM_N_PHI = 18  # azimuth bins
 FPS = 2
 SR = 48000
@@ -18,7 +19,9 @@ SR = 48000
 def fake_video():
     """A (N, H, W, 3) uint8 video array and fps."""
     rng = np.random.default_rng(0)
-    video = rng.integers(100, 200, (N_VIDEO_FRAMES, VIDEO_H, VIDEO_W, 3), dtype=np.uint8)
+    video = rng.integers(
+        100, 200, (N_VIDEO_FRAMES, VIDEO_H, VIDEO_W, 3), dtype=np.uint8
+    )
     return video, FPS
 
 
@@ -26,7 +29,10 @@ def fake_video():
 def fake_aem():
     """AEM of shape (N//2, n_nu, n_phi) — repeat(2) inside visualize_aem gives N frames."""
     rng = np.random.default_rng(1)
-    aem = rng.random((N_VIDEO_FRAMES // 2, AEM_N_NU, AEM_N_PHI), dtype=np.float32) * 0.8 + 0.1
+    aem = (
+        rng.random((N_VIDEO_FRAMES // 2, AEM_N_NU, AEM_N_PHI), dtype=np.float32) * 0.8
+        + 0.1
+    )
     timestamps = np.arange(N_VIDEO_FRAMES // 2, dtype=np.float32) / FPS
     phi_mesh = np.zeros((AEM_N_NU, AEM_N_PHI), dtype=np.float32)
     nu_mesh = np.zeros((AEM_N_NU, AEM_N_PHI), dtype=np.float32)

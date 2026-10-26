@@ -4,8 +4,27 @@
 [![CI](https://github.com/fisheggg/ambiviz/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fisheggg/ambiviz/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/ambiviz)](https://pypi.org/project/ambiviz/)
 
+Python visualization tools for ambisonic audio (and 360 video). Supports GPU acceleration with PyTorch.
 
-Visualization tools for ambisonic audio (and 360 video).
+## Installation
+
+```
+pip install ambiviz
+```
+
+or if you use uv:
+
+```
+uv add ambiviz
+```
+
+## Functions
+
+### `ambiviz.anglegram()`
+
+### `ambiviz.directogram()`
+
+### `ambiviz.aem()`
 
 
 ## Gallery

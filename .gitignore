@@ -44,3 +44,5 @@ test_output/
 test/*.mp4
 test/*.wav
 test/*.npz
+
+.python-version

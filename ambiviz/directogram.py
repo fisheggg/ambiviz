@@ -78,6 +78,7 @@ def directogram(
     aem_height: int = 45,
     batch_size: int = 5,
     gpu: bool = False,
+    title: Optional[str] = None,
 ):
     aem, time_stamp, phi_mesh, nu_mesh = compute_aem(
         audio_path=audio_path,
@@ -93,6 +94,9 @@ def directogram(
     angles, energy = compute_directogram_from_aem(aem, time_stamp, phi_mesh, nu_mesh)
 
     logger.debug(f"Plotting directogram. Save path: {save_path}")
-    ax = plot_directogram(angles, energy, ax=ax, save_path=save_path)
+    if title is None:
+        title = os.path.basename(audio_path)
+        title = f"Directogram of {title}"
+    ax = plot_directogram(angles, energy, title=title, ax=ax, save_path=save_path)
 
     return ax, angles, energy
