@@ -1,4 +1,6 @@
+import logging
 import os
+import warnings
 from typing import Optional, Union
 from pathlib import Path
 
@@ -6,7 +8,11 @@ import torchaudio
 import librosa
 import numpy as np
 
+from ..utils import read_exchange_format_from_metadata
+from .common import DEFAULT_NORMALIZATION, DEFAULT_ORDERING
 from .spherical_maps import AEMGenerator, MelAEMGenerator
+
+logger = logging.getLogger(__name__)
 
 
 def compute_aem(
@@ -25,6 +31,8 @@ def compute_aem(
     n_mels: int = 16,
     verbose: bool = False,
     to_db: bool = False,
+    channel_order: Optional[str] = None,
+    normalization: Optional[str] = None,
     **kwargs,
 ):
     """
@@ -42,9 +50,39 @@ def compute_aem(
         gpu: bool, use GPU for AEM computation
         batch_size: int, batch size for AEM computation
         mode: str, "aem" or "melaem"
+        channel_order: channel ordering; None reads metadata, then defaults to ACN
+        normalization: normalization; None reads metadata, then defaults to SN3D
 
     """
     assert mode in ["aem", "melaem"]
+
+    if channel_order is None or normalization is None:
+        metadata_order, metadata_normalization = read_exchange_format_from_metadata(
+            audio_path
+        )
+        if channel_order is None:
+            channel_order = metadata_order
+        if normalization is None:
+            normalization = metadata_normalization
+
+        if channel_order is None or normalization is None:
+            warnings.warn(
+                "Could not determine the full Ambisonic exchange format from input "
+                "arguments or file metadata. Defaulting missing channel_order "
+                "to ACN and missing normalization to SN3D.",
+                stacklevel=2,
+            )
+            if channel_order is None:
+                channel_order = DEFAULT_ORDERING
+            if normalization is None:
+                normalization = DEFAULT_NORMALIZATION
+    logger.debug(
+        f"Using channel order: {channel_order}, normalization: {normalization} for AEM computation."
+    )
+    if channel_order != "ACN" or normalization != "SN3D":
+        raise NotImplementedError(
+            f"Only ACN channel order and SN3D normalization are currently supported for AEM computation, but got {channel_order}/{normalization}."
+        )
 
     # Determine hop length
     _, sr = librosa.load(audio_path, mono=False, sr=None, duration=1)
@@ -70,6 +108,8 @@ def compute_aem(
             batch_size=batch_size,
             show_progress_bar=verbose,
             to_db=to_db,
+            channel_order=channel_order,
+            normalization=normalization,
             **kwargs,
         )
     elif mode == "melaem":
@@ -84,6 +124,8 @@ def compute_aem(
             sample_rate=sr,
             show_progress=verbose,
             to_db=to_db,
+            channel_order=channel_order,
+            normalization=normalization,
             **kwargs,
         )
 
@@ -101,14 +143,10 @@ def compute_aem(
     # (n_frames, n_phi, n_nu) in aem mode
     # (n_frames, n_phi, n_nu, n_mels) in melaem mode
     # Its first dimension is the actual number of analysis frames.
-    aem = aemg.compute(y.T)
+    aem = aemg.compute(y.T.numpy())
 
     # Generate one timestamp for each AEM frame.
-    time_stamp = (
-        np.arange(aem.shape[0], dtype=float)
-        * audio_hop_length
-        / sr_
-    )
+    time_stamp = np.arange(aem.shape[0], dtype=float) * audio_hop_length / sr_
 
     # save aem
     if save_dir is not None:
