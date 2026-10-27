@@ -126,12 +126,12 @@ def index_to_degree_order(index, ordering=DEFAULT_ORDERING):
             mapping = [1, -1, 0]
             degree = mapping[index]
         else:
-            degree = (int(index) + 1) / 2
+            degree = (int(index) + 1) // 2
             if index % 2 == 0:
                 degree = -degree
         return order, degree
     else:
-        degree = (int(index) + 1) / 2
+        degree = (int(index) + 1) // 2
         if index % 2 == 0:
             degree = -degree
         return order, degree

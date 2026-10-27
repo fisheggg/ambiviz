@@ -8,7 +8,7 @@ from librosa.util import frame
 from torchaudio.transforms import MelSpectrogram
 from tqdm import tqdm
 
-from .common import AmbiFormat
+from .common import AmbiFormat, DEFAULT_NORMALIZATION, DEFAULT_ORDERING
 from .decoder import AmbiDecoder
 from .position import Position
 
@@ -48,6 +48,8 @@ class AEMGenerator(object):
         gpu: bool = False,
         show_progress_bar: bool = False,
         to_db: bool = False,
+        channel_order: str = DEFAULT_ORDERING,
+        normalization: str = DEFAULT_NORMALIZATION,
     ):
         """
         generates audio energy maps from ambisonics audio
@@ -63,6 +65,8 @@ class AEMGenerator(object):
             gpu: bool, use GPU for decoding
             batch_size: int, batch size for decoding
             show_progress: bool, show progress bar
+            channel_order: Ambisonic channel ordering
+            normalization: Ambisonic normalization convention
         """
         self.angular_res = angular_res
         self.phi_mesh, self.nu_mesh = spherical_mesh(angular_res, n_phi, n_nu)
@@ -81,7 +85,10 @@ class AEMGenerator(object):
 
         # Setup decoder
         self.decoder = AmbiDecoder(
-            mesh_p, AmbiFormat(ambi_order), method="projection", gpu=gpu
+            mesh_p,
+            AmbiFormat(ambi_order, ordering=channel_order, normalization=normalization),
+            method="projection",
+            gpu=gpu,
         )
 
     def compute(self, audio: np.ndarray):
@@ -154,6 +161,8 @@ class MelAEMGenerator(object):
         device: str = "cuda",
         show_progress: bool = False,
         to_db: bool = False,
+        channel_order: str = DEFAULT_ORDERING,
+        normalization: str = DEFAULT_NORMALIZATION,
         **mel_kwargs,
     ):
         """
@@ -170,6 +179,8 @@ class MelAEMGenerator(object):
             gpu: bool, use GPU for decoding
             batch_size: int, batch size for decoding
             show_progress: bool, show progress bar
+            channel_order: Ambisonic channel ordering
+            normalization: Ambisonic normalization convention
         """
         self.angular_res = angular_res
         self.phi_mesh, self.nu_mesh = spherical_mesh(angular_res, n_phi, n_nu)
@@ -191,7 +202,7 @@ class MelAEMGenerator(object):
         # Setup decoder
         self.decoder = AmbiDecoder(
             mesh_p,
-            AmbiFormat(ambi_order),
+            AmbiFormat(ambi_order, ordering=channel_order, normalization=normalization),
             method="projection",
             gpu=(True if device == "cuda" else False),
         )

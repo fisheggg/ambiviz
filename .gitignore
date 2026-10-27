@@ -45,4 +45,6 @@ test/*.mp4
 test/*.wav
 test/*.npz
 
-.python-version
+# Agents
+AGENTS.md
+agent/
