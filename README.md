@@ -44,8 +44,11 @@ color scale and hide values at or below `db_threshold`.
 
 ## Gallery
 
-### Anglegram
-![](figures/anglegram.png)
+### Anglegram (`plot_mode=argmax`)
+![](figures/anglegram_argmax.png)
+
+### Anglegram (`plot_mode=full`)
+![](figures/anglegram_full.png)
 
 ### Directogram
 ![](figures/directogram.png)
