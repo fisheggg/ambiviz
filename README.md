@@ -41,6 +41,31 @@ color scale and hide values at or below `db_threshold`.
 
 ### `ambiviz.aem()`
 
+Blend a yellow–orange–red energy map over an equirectangular video. Stronger
+directions appear redder and more opaque; weak regions keep the original video.
+Maps interpolate between audio-window centers for smooth motion.
+
+```python
+ambiviz.aem(
+    audio_path="audio.wav",
+    video_paths=["video.mp4"],
+    save_path="overlay.mp4",
+    duration=10,
+    normalization_mode="local",
+    aem_mask_alpha=0.5,
+)
+```
+
+`normalization_mode="global"` uses the clip-wide RMS range, preserving relative
+levels over time. The default, `"local"`, emphasizes direction by normalizing each analysis
+frame. `to_db=True` reveals quieter directions before normalization.
+Use `normalization_mode="local"` for SpatialAudioGen-style directional emphasis.
+Constant normalization ranges produce a transparent map; `aem_mask_alpha=0`
+leaves all video pixels unchanged before encoding. The display uses
+`clip(2*x - 0.7, 0, 1)` for normalized energy `x`, following
+[SpatialAudioGen's overlay](https://github.com/pedro-morgado/spatialaudiogen/blob/a3e8ad1a6bfd78c51a8a073cd00f9d80387e164e/myutils.py#L246-L279).
+Color and opacity indicate relative energy, not calibrated sound pressure.
+
 
 ## Gallery
 
@@ -54,7 +79,7 @@ color scale and hide values at or below `db_threshold`.
 ![](figures/directogram.png)
 
 ### Audio Energy Map (AEM)
-![](figures/aem.png)
+![](figures/aem_frames.png)
 
 
 ## References
