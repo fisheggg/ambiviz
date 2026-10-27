@@ -22,24 +22,37 @@ uv add ambiviz
 
 ### `ambiviz.anglegram()`
 
-By default, plots the strongest direction of arrival per frame (`mode="argmax"`).
-Use `mode="full"` to show all directions as azimuth and elevation heatmaps,
-with the strongest direction per frame overlaid as scatter points:
-
 ```python
 import ambiviz
 
-ambiviz.anglegram("audio.wav", mode="full")
+ambiviz.anglegram(
+    "audio.wav",
+    plot_mode="argmax" # or "full", optional
+    )
 ```
 
-Full mode averages linear RMS over elevation for the azimuth heatmap and over
-azimuth for the elevation heatmap, then converts to dB relative to the full
-audio energy map's maximum. Both modes use `db_threshold` and `db_max` for the
-color scale and hide values at or below `db_threshold`.
+The `plot_mode="argmax"` is the default option that only plots the DoA with maximum energy, while `plot_mode="full"` will show the energy at all directions and circles out the argmax DoA. Note that with low-order Ambisnoics, `"full"` won't have a very good spatial resolution.
 
 ### `ambiviz.directogram()`
 
 ### `ambiviz.aem()`
+
+Blend a yellow–orange–red energy map over an equirectangular video. Stronger
+directions appear redder and more opaque; weak regions keep the original video.
+Maps interpolate between audio-window centers for smooth motion.
+
+The W channel in audio will be used as a mono channel in the generated output.
+
+
+```python
+ambiviz.aem(
+    audio_path="audio.wav",
+    video_paths=["video.mp4"],
+    save_path="output.mp4",
+    duration=10, # optional, cut the output by sec
+)
+```
+
 
 
 ## Gallery
@@ -54,7 +67,7 @@ color scale and hide values at or below `db_threshold`.
 ![](figures/directogram.png)
 
 ### Audio Energy Map (AEM)
-![](figures/aem.png)
+![](figures/aem_frames.png)
 
 
 ## References
