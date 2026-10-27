@@ -18,16 +18,22 @@ from ambiviz.ambisonics.decoder import AmbiDecoder
     [
         (
             {"channel_order": "SID", "normalization": "N3D"},
-            (None, None), ("SID", "N3D"), False,
+            (None, None),
+            ("SID", "N3D"),
+            False,
         ),
         ({}, ("FURSE_MALHAM", "MAX_N"), ("FURSE_MALHAM", "MAX_N"), False),
         (
             {"channel_order": "FURSE_MALHAM"},
-            ("ACN", None), ("FURSE_MALHAM", "SN3D"), True,
+            ("ACN", None),
+            ("FURSE_MALHAM", "SN3D"),
+            True,
         ),
         (
             {"normalization": "N3D"},
-            (None, "SN3D"), ("ACN", "N3D"), True,
+            (None, "SN3D"),
+            ("ACN", "N3D"),
+            True,
         ),
         ({}, (None, None), ("ACN", "SN3D"), True),
     ],
