@@ -22,20 +22,16 @@ uv add ambiviz
 
 ### `ambiviz.anglegram()`
 
-By default, plots the strongest direction of arrival per frame (`mode="argmax"`).
-Use `mode="full"` to show all directions as azimuth and elevation heatmaps,
-with the strongest direction per frame overlaid as scatter points:
-
 ```python
 import ambiviz
 
-ambiviz.anglegram("audio.wav", mode="full")
+ambiviz.anglegram(
+    "audio.wav",
+    plot_mode="argmax" # or "full", optional
+    )
 ```
 
-Full mode averages linear RMS over elevation for the azimuth heatmap and over
-azimuth for the elevation heatmap, then converts to dB relative to the full
-audio energy map's maximum. Both modes use `db_threshold` and `db_max` for the
-color scale and hide values at or below `db_threshold`.
+The `plot_mode="argmax"` is the default option that only plots the DoA with maximum energy, while `plot_mode="full"` will show the energy at all directions and circles out the argmax DoA. Note that with low-order Ambisnoics, `"full"` won't have a very good spatial resolution.
 
 ### `ambiviz.directogram()`
 
@@ -45,26 +41,18 @@ Blend a yellow–orange–red energy map over an equirectangular video. Stronger
 directions appear redder and more opaque; weak regions keep the original video.
 Maps interpolate between audio-window centers for smooth motion.
 
+The W channel in audio will be used as a mono channel in the generated output.
+
+
 ```python
 ambiviz.aem(
     audio_path="audio.wav",
     video_paths=["video.mp4"],
-    save_path="overlay.mp4",
-    duration=10,
-    normalization_mode="local",
-    aem_mask_alpha=0.5,
+    save_path="output.mp4",
+    duration=10, # optional, cut the output by sec
 )
 ```
 
-`normalization_mode="global"` uses the clip-wide RMS range, preserving relative
-levels over time. The default, `"local"`, emphasizes direction by normalizing each analysis
-frame. `to_db=True` reveals quieter directions before normalization.
-Use `normalization_mode="local"` for SpatialAudioGen-style directional emphasis.
-Constant normalization ranges produce a transparent map; `aem_mask_alpha=0`
-leaves all video pixels unchanged before encoding. The display uses
-`clip(2*x - 0.7, 0, 1)` for normalized energy `x`, following
-[SpatialAudioGen's overlay](https://github.com/pedro-morgado/spatialaudiogen/blob/a3e8ad1a6bfd78c51a8a073cd00f9d80387e164e/myutils.py#L246-L279).
-Color and opacity indicate relative energy, not calibrated sound pressure.
 
 
 ## Gallery
