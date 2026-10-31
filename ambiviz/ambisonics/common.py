@@ -28,58 +28,6 @@ class AmbiFormat(object):
         self.normalization = normalization
 
 
-class AmbisonicArray(object):
-    def __init__(self, data, ambi_format=AmbiFormat()):
-        self.data = data
-        self.format = ambi_format
-
-    def convert(self, sample_rate=None, ordering=None, normalization=None):
-        assert (
-            sample_rate is not None or ordering is not None or normalization is not None
-        )
-        n = self.format.num_channels
-
-        if sample_rate is not None and sample_rate != self.format.sample_rate:
-            from scipy.signal import resample
-
-            duration = float(self.data.shape[0]) / self.format.sample_rate
-            data = resample(self.data, int(duration * sample_rate))
-            self.format.sample_rate = sample_rate
-        else:
-            data = np.copy(self.data)
-
-        if ordering is not None and ordering != self.format.ordering:
-            assert ordering in CHANNEL_ORDERING
-            mapping = map(
-                lambda x: convert_ordering(x, ordering, self.format.ordering), range(n)
-            )
-            data = data[:, mapping]
-            self.format.ordering = ordering
-
-        if normalization is not None and normalization != self.format.normalization:
-            assert normalization in NORMALIZATION
-            c_out = np.array(
-                map(
-                    lambda x: normalization_factor(
-                        x, self.format.ordering, normalization
-                    ),
-                    range(n),
-                )
-            )
-            c_in = np.array(
-                map(
-                    lambda x: normalization_factor(
-                        x, self.format.ordering, self.format.normalization
-                    ),
-                    range(n),
-                )
-            )
-            data *= (c_out / c_in).reshape((1, -1))
-            self.format.normalization = normalization
-
-        self.data = data
-
-
 def degree_order_to_index(order, degree, ordering=DEFAULT_ORDERING):
     assert -order <= degree <= order
     assert ordering in CHANNEL_ORDERING

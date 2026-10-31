@@ -177,20 +177,3 @@ def aem(
     if verbose:
         print(f"=> Video saved to {save_path}")
 
-
-if __name__ == "__main__":
-    audio_path = "../test_files/test_aem_3oa.wav"
-    video_path = "../test_files/test_aem_video.mp4"
-
-    aem(
-        audio_path,
-        [video_path],
-        "../test_output",
-        duration=30,
-        audio_offset=23.3 + 270,
-        video_offset=32.5 + 270,
-        verbose=True,
-        aem_mask_alpha=0.5,
-        ambi_order=3,
-        to_db=True,
-    )

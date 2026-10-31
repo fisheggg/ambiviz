@@ -65,21 +65,9 @@ class AmbiDecoder(object):
             self.sph_mat = self.sph_mat.cuda()
 
     def decode(self, ambi):
-        # if self.gpu:
-        # print(f"dtype of ambi: {ambi.dtype}; dtype of sph_mat: {self.sph_mat.dtype}")
-        # if not ambi.is_cuda:
-        #     raise ValueError(
-        #         "Ambisonics signal must be on GPU when the decoder is in gpu mode."
-        #     )
-        # print(f"=> Ambi shape: {ambi.shape}; Sph_mat shape: {self.sph_mat.shape}")
         if self.method == "projection":
             with torch.no_grad():
                 return torch.tensordot(ambi, self.sph_mat.T, dims=([-1], [-2]))
         if self.method == "pseudoinv":
             with torch.no_grad():
                 return torch.tensordot(ambi, self.pinv, dims=([-1], [-2]))
-        # else:
-        #     if self.method == "projection":
-        #         return torch.from_numpy(np.dot(ambi, self.sph_mat.T))
-        #     if self.method == "pseudoinv":
-        #         return torch.from_numpy(np.dot(ambi, self.pinv))

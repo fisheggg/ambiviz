@@ -226,7 +226,6 @@ class MelAEMGenerator(object):
             audio, frame_length=self.frame_length, hop_length=self.hop_length, axis=0
         )
         n_frames = data.shape[0]
-        # data = torch.from_numpy(data)
         if self.batch_size is not None:
             # pad the data to make it divisible by batch_size
             n_pad = self.batch_size - (data.shape[0] % self.batch_size)
@@ -234,7 +233,6 @@ class MelAEMGenerator(object):
             data = frame(
                 data, frame_length=self.batch_size, hop_length=self.batch_size, axis=0
             )
-        # print(f"Data shape: {data.shape}")
 
         # decoded final shape: (n_frames, n_speakers)
         if self.batch_size is not None:
@@ -257,22 +255,12 @@ class MelAEMGenerator(object):
 
                 # compute mel spectrogram
                 mel_emb = self.mel_transform(decoded_audio).squeeze(-1)
-                # print(f"Mel spec shape: {mel_emb.shape}")
                 decoded_mel[i] = mel_emb.cpu()
                 # mel_spec shape: (n_batch, n_speakers, n_mels)
                 del decoded_audio
 
             decoded_mel = decoded_mel.reshape(-1, *self.frame_shape)[:n_frames]
 
-        # else:
-        #     decoded = self.decoder.decode(data)
-        #     # compute rms
-        #     decoded = np.sqrt(decoded.mean(decoded**2, axis=1))
-        #     # reshape to (n_frames, n_phi, n_nu)
-        #     decoded = decoded.reshape(decoded.shape[0], *self.frame_shape)
-
-        # print(f"Decoded shape: {decoded.shape}")
-        # print(f"RMS shape: {rms.shape}")
         if self.to_db:
             return amplitude_to_db(decoded_mel)
         else:

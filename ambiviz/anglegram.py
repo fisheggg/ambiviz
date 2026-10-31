@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 from pathlib import Path
@@ -55,33 +54,6 @@ def compute_anglegram_from_aem(
     energy_record = librosa.amplitude_to_db(energy_record, ref=np.max)
 
     return time_stamp, phi_record, nu_record, energy_record
-
-
-# def get_anglegram_mean_rms(audio_path) -> Tuple[float, np.ndarray]:
-#     """
-#     Calculate average rms of the audio file, made for noise estimation..
-#     """
-#     time_stamp, phi_mesh, nu_mesh, aem = compute_aem(
-#         audio_path=audio_path,
-#         fps=20,
-#         audio_frame_length=4800,
-#         aem_width=360,  # angular_res = 1
-#         aem_height=180,
-#         gpu=True,
-#         batch_size=5,
-#     )
-#     phi_record, nu_record, energy_record = [], [], []
-
-#     aem_argmax = [np.unravel_index(np.argmax(r), r.shape) for r in aem]
-#     for i, point in enumerate(aem_argmax):
-#         phi_record.append(phi_mesh[point[0], point[1]])
-#         nu_record.append(nu_mesh[point[0], point[1]])
-#         energy_record.append(aem[i, point[0], point[1]])
-#     phi_record = np.array(phi_record)
-#     nu_record = np.array(nu_record)
-#     energy_record = np.array(energy_record)
-
-#     return np.mean(energy_record), energy_record
 
 
 def plot_anglegram(
@@ -179,7 +151,6 @@ def plot_anglegram(
             )
         ax[0].set_yticklabels(ytick_labels)
 
-        # plt.colorbar(sc, ax=ax[0], label="RMS (dB)")
         ax[0].set(xlabel="Time (s)", ylabel="Azimuth (rad)")
         # horizontal lines on pi and 2pi
         for ytick in yticks:
@@ -190,7 +161,6 @@ def plot_anglegram(
 
         ax[0].grid(axis="x")
 
-        # ax[1].plot(time_record, nu_record, label='Elevation')
         ax[1].set(
             xlabel="Time (s)",
             ylabel="Elevation (rad)",
@@ -207,7 +177,6 @@ def plot_anglegram(
                 ax[1].axhline(y=ytick, linestyle="-", color="black", alpha=0.5)
             else:
                 ax[1].axhline(y=ytick, linestyle="--", alpha=0.3)
-        # plt.colorbar(sc, ax=ax[1], label="RMS (dB)")
         fig.colorbar(
             heatmap if plot_mode == "full" else sc,
             ax=ax.ravel().tolist(),
@@ -228,63 +197,6 @@ def plot_anglegram(
         nu_record[rms_record > db_threshold],
         rms_record[rms_record > db_threshold],
     )
-
-
-def plot_anglemap(aem_path: str, save_path: Optional[str] = None, **kwargs):
-    data = np.load(aem_path)
-    time_stamp, _, _, aem = (
-        data["time_stamp"],
-        data["phi_mesh"],
-        data["nu_mesh"],
-        data["aem"],
-    )
-
-    logger.debug(f"aem shape: {aem.shape}")  # (1093, 180, 360)
-
-    phi_img = np.mean(aem, axis=1)  # (1093, 360)
-    phi_img = np.flip(phi_img, axis=1).T  # (360, 1093), top left pi
-    logger.debug(f"phi_img shape: {phi_img.shape}")
-
-    nu_img = np.mean(aem, axis=2)  # (1093, 180)
-    nu_img = np.flip(nu_img, axis=1).T  # (180, 1093), top left pi/2
-    logger.debug(f"nu_img shape: {nu_img.shape}")
-
-    fig, ax = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
-    fig.suptitle(
-        f"{os.path.basename(aem_path)}\nmin: {aem.mean():.2f}, max: {aem.max():.2f}",
-        fontsize=16,
-    )
-    ax[0].imshow(phi_img, cmap="hot", aspect="auto", **kwargs)
-    ax[0].set_yticks([0, 89, 179, 269, 359])
-    ax[0].set_yticklabels([r"$\pi$", r"$\pi/2$", r"$0$", r"$-\pi/2$", r"$-\pi$"])
-    ax[0].set_xticks(np.arange(0, len(time_stamp), 200))
-    ax[0].set_xticklabels(np.arange(0, len(time_stamp), 200) / 20)
-
-    ax[0].set_ylabel("Azimuth (rad)")
-
-    ax[1].imshow(nu_img, cmap="hot", aspect="auto", **kwargs)
-    ax[1].set_xlabel("Time (s)")
-    ax[1].set_ylabel("Elevation (rad)")
-    ax[1].set_yticks([0, 44, 89, 134, 179])
-    ax[1].set_yticklabels([r"$\pi/2$", r"$\pi/4$", r"$0$", r"$-\pi/4$", r"$-\pi/2$"])
-
-    if save_path is not None:
-        plt.savefig(save_path)
-        logger.info(f"=> Figure saved to {save_path}")
-    else:
-        plt.show()
-
-
-def frame_to_seconds(frame_idx, fps=30):
-    return frame_idx / fps
-
-
-def seconds_to_timestring(seconds):
-    return str(datetime.timedelta(seconds=seconds))
-
-
-def frame_to_timestring(frame_idx, fps=30):
-    return seconds_to_timestring(frame_to_seconds(frame_idx, fps))
 
 
 def anglegram(
