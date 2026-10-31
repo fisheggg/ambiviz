@@ -64,3 +64,5 @@ jobs:
 
         - name: Run tests
           run: uv run pytest -m "not integration"
+          env:
+            MPLBACKEND: Agg  # headless runners; Tk on Windows images is unreliable
