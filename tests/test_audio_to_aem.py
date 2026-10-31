@@ -110,3 +110,46 @@ def test_exchange_formats_match_acn_sn3d(ambi_order, channel_order, normalizatio
     peak = np.unravel_index(reference[0].argmax(), reference[0].shape)
     assert abs(generator.phi_mesh[peak] - source.phi) < 0.2
     assert abs(generator.nu_mesh[peak] - source.nu) < 0.2
+
+
+def _compute(mode="aem", **kwargs):
+    audio = torch.ones((4, 960))
+    with (
+        patch.object(audio_to_aem.librosa, "load", return_value=(audio.numpy(), 48000)),
+        patch.object(audio_to_aem.torchaudio, "load", return_value=(audio, 48000)),
+    ):
+        return audio_to_aem.compute_aem(
+            "audio.wav",
+            mode=mode,
+            aem_width=4,
+            aem_height=2,
+            batch_size=2,
+            n_mels=2,
+            channel_order="ACN",
+            normalization="SN3D",
+            **kwargs,
+        )
+
+
+def test_explicit_hop_skips_fps_divisibility():
+    # 29.97 fps video does not divide 48 kHz, but the hop is given explicitly.
+    aem, time_stamp, _, _ = _compute(fps=29.97, audio_frame_length=128, audio_hop_length=64)
+    assert len(aem) == (960 - 128) // 64 + 1
+    np.testing.assert_allclose(np.diff(time_stamp), 64 / 48000)
+    with pytest.raises(ValueError, match="divisible"):
+        _compute(fps=29.97, audio_frame_length=128)
+
+
+def test_hop_longer_than_frame_warns_and_computes():
+    with pytest.warns(UserWarning, match="larger than audio frame length"):
+        aem, *_ = _compute(audio_frame_length=64, audio_hop_length=128)
+    assert len(aem) == (960 - 64) // 128 + 1
+
+
+def test_melaem_uses_hop_length_and_returns_numpy():
+    aem, time_stamp, _, _ = _compute(
+        mode="melaem", audio_frame_length=128, audio_hop_length=64
+    )
+    assert isinstance(aem, np.ndarray)
+    assert aem.shape == ((960 - 128) // 64 + 1, 2, 4, 2)
+    np.testing.assert_allclose(np.diff(time_stamp), 64 / 48000)

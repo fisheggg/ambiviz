@@ -289,3 +289,26 @@ def test_anglegram_integration():
         )
     except Exception as e:
         pytest.fail(f"Integration test failed with exception: {e}")
+
+
+def test_anglegram_full_weights_elevations_by_solid_angle():
+    from ambiviz.ambisonics.spherical_maps import spherical_mesh
+
+    phi_mesh, nu_mesh = spherical_mesh(n_phi=4, n_nu=3)  # nu = -60°, 0°, 60°
+    aem = np.full((1, 3, 4), 0.01)
+    aem[0, 0, 1] = 1.0  # near the south pole
+    aem[0, 1, 2] = 1.0  # on the horizon
+    with patch.object(
+        anglegram_module,
+        "compute_aem",
+        return_value=(aem, np.array([0.0]), phi_mesh, nu_mesh),
+    ):
+        axes = anglegram("audio.wav", mode="full", fps=4, db_threshold=-100, db_max=0)
+    try:
+        azimuth = axes[0].collections[0].get_array().ravel()
+        expected = np.average(aem[0], axis=0, weights=np.cos(nu_mesh[:, 0]))
+        np.testing.assert_allclose(azimuth, 20 * np.log10(expected))
+        # The horizon peak covers twice the solid angle of the one at -60°.
+        assert azimuth[2] - azimuth[1] > 5
+    finally:
+        plt.close(axes[0].figure)

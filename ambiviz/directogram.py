@@ -37,7 +37,7 @@ def plot_directogram(
         ax.set_theta_zero_location("N")
 
     if save_path is not None:
-        plt.savefig(save_path)
+        ax.figure.savefig(save_path)
         logger.info(f"Figure saved to {save_path}")
 
     return ax
@@ -57,8 +57,9 @@ def compute_directogram_from_aem(aem, time_stamp, phi_mesh, nu_mesh):
         angles: np.ndarray, in degrees, shape (n_phi,)
         energy: np.ndarray, shape (n_phi,)
     """
-    horizontal_nu_idx = nu_mesh.shape[0] // 2
-    horizontal_aem = aem[:, horizontal_nu_idx, :]
+    # Average the row(s) closest to the horizon: one for odd n_nu, two for even.
+    distance = np.abs(nu_mesh[:, 0])
+    horizontal_aem = aem[:, np.isclose(distance, distance.min()), :].mean(axis=1)
     angles = phi_mesh[0, :] / np.pi * 180
     energy = np.zeros_like(angles)
     for i in range(horizontal_aem.shape[0]):

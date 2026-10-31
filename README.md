@@ -27,13 +27,21 @@ import ambiviz
 
 ambiviz.anglegram(
     "audio.wav",
-    plot_mode="argmax" # or "full", optional
+    mode="argmax", # or "full", optional
     )
 ```
 
-The `plot_mode="argmax"` is the default option that only plots the DoA with maximum energy, while `plot_mode="full"` will show the energy at all directions and circles out the argmax DoA. Note that with low-order Ambisnoics, `"full"` won't have a very good spatial resolution.
+The `mode="argmax"` is the default option that only plots the DoA with maximum energy, while `mode="full"` will show the energy at all directions and circles out the argmax DoA. Note that with low-order Ambisonics, `"full"` won't have a very good spatial resolution.
 
 ### `ambiviz.directogram()`
+
+Polar histogram of where the sound comes from on the horizontal plane. For each
+analysis frame, the strongest horizontal direction adds its energy to that
+direction's bar.
+
+```python
+ax, angles, energy = ambiviz.directogram("audio.wav", save_path="directogram.png")
+```
 
 ### `ambiviz.aem()`
 
@@ -57,10 +65,10 @@ ambiviz.aem(
 
 ## Gallery
 
-### Anglegram (`plot_mode=argmax`)
+### Anglegram (`mode="argmax"`)
 ![](figures/anglegram_argmax.png)
 
-### Anglegram (`plot_mode=full`)
+### Anglegram (`mode="full"`)
 ![](figures/anglegram_full.png)
 
 ### Directogram

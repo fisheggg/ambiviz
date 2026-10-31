@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 def compute_aem(
     audio_path: Union[str, os.PathLike, Path],
-    save_dir: Optional[Union[str, os.PathLike, Path]] = None,
     duration: Optional[float] = None,
     offset: Optional[float] = None,
     fps: int = 20,
@@ -39,14 +38,12 @@ def compute_aem(
     compute audio energy map for an audio file.
 
     Args:
-        audio_path: pathlike, path to the audio directory
-        save_dir: pathliuk, path to the save directory
+        audio_path: pathlike, path to the audio file
         duration: float, duration of the audio in seconds
-        fps: int, frames per second
+        fps: int, frames per second; sets the hop length when audio_hop_length is None
         audio_frame_length: int, frame length for audio in samples
         aem_width: int, width of the AEM
         aem_height: int, height of the AEM
-        save_path: str, path to save the figure
         gpu: bool, use GPU for AEM computation
         batch_size: int, batch size for AEM computation
         mode: str, "aem" or "melaem"
@@ -82,13 +79,14 @@ def compute_aem(
 
     # Determine hop length
     _, sr = librosa.load(audio_path, mono=False, sr=None, duration=1)
-    if sr % fps != 0:
-        raise ValueError(f"Sample rate ({sr}) must be divisible by fps ({fps}).")
     if audio_hop_length is None:
+        if sr % fps != 0:
+            raise ValueError(f"Sample rate ({sr}) must be divisible by fps ({fps}).")
         audio_hop_length = sr // fps
     if audio_hop_length > audio_frame_length:
-        raise Warning(
-            f"Audio hop length ({audio_hop_length}) is larger than audio frame length ({audio_frame_length}), information might be lost."
+        warnings.warn(
+            f"Audio hop length ({audio_hop_length}) is larger than audio frame length ({audio_frame_length}), information might be lost.",
+            stacklevel=2,
         )
 
     if gpu and verbose:
@@ -111,7 +109,7 @@ def compute_aem(
     elif mode == "melaem":
         aemg = MelAEMGenerator(
             frame_length=audio_frame_length,
-            hop_length=audio_frame_length,
+            hop_length=audio_hop_length,
             n_phi=aem_width,
             n_nu=aem_height,
             device="cuda" if gpu else "cpu",
@@ -144,19 +142,4 @@ def compute_aem(
     # Generate one timestamp for each AEM frame.
     time_stamp = np.arange(aem.shape[0], dtype=float) * audio_hop_length / sr_
 
-    # save aem
-    if save_dir is not None:
-        aem_name = os.path.basename(audio_path).replace(f".{audio_format}", "_aem.npz")
-        phi_mesh = aemg.phi_mesh
-        nu_mesh = aemg.nu_mesh
-        np.savez(
-            os.path.join(save_dir, aem_name),
-            aem=aem,
-            time_stamp=time_stamp,
-            phi_mesh=phi_mesh,
-            nu_mesh=nu_mesh,
-        )
-        if verbose:
-            print(f"=> AEM file saved to: {os.path.join(save_dir, aem_name)}")
-    else:
-        return aem, time_stamp, aemg.phi_mesh, aemg.nu_mesh
+    return aem, time_stamp, aemg.phi_mesh, aemg.nu_mesh

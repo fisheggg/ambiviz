@@ -102,8 +102,11 @@ def plot_anglegram(
             (1, 2),
         ):
             if plot_mode == "full":
+                # Rows near the poles cover less solid angle, so weight them by cos(nu).
+                weights = np.cos(nu_record) if projection_axis == 1 else None
                 energy = librosa.amplitude_to_db(
-                    rms_record.mean(axis=projection_axis), ref=np.max(rms_record)
+                    np.average(rms_record, axis=projection_axis, weights=weights),
+                    ref=np.max(rms_record),
                 )
                 time_edges = np.append(
                     time_record - 0.5 / fps, time_record[-1] + 0.5 / fps
@@ -184,7 +187,7 @@ def plot_anglegram(
         )
 
     if save_path is not None:
-        plt.savefig(save_path)
+        fig.savefig(save_path)
         logger.info(f"Figure saved to {save_path}")
 
     if plot_mode == "full":

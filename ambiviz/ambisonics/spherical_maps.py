@@ -19,17 +19,16 @@ def spherical_mesh(angular_res=None, n_phi=None, n_nu=None):
     """
     phi(azimuth): pi (left) to -pi (right), counter-clockwise growing
     nu(elevation): -pi/2 (bottom) to pi/2 (top)
+
+    Points sit at equirectangular cell centres, like image pixels, so no
+    direction is sampled twice (+pi/-pi, or a whole row at a pole).
     """
-    if angular_res is None and n_phi is None and n_nu is None:
-        raise ValueError("Either angular_res or n_phi and n_nu must be provided")
-    elif angular_res is not None:
-        phi_rg = np.flip(np.arange(-180.0, 180.0, angular_res) / 180.0 * np.pi)
-        nu_rg = np.arange(-90.0, 90.0, angular_res) / 180.0 * np.pi
-    elif n_phi is not None and n_nu is not None:
-        phi_rg = np.flip(np.linspace(-np.pi, np.pi, n_phi))
-        nu_rg = np.linspace(-np.pi / 2, np.pi / 2, n_nu)
+    if angular_res is not None:
+        n_phi, n_nu = round(360 / angular_res), round(180 / angular_res)
     elif n_phi is None or n_nu is None:
-        raise ValueError("Both n_phi and n_nu must be provided")
+        raise ValueError("Either angular_res or both n_phi and n_nu must be provided")
+    phi_rg = np.pi - (np.arange(n_phi) + 0.5) * 2 * np.pi / n_phi
+    nu_rg = (np.arange(n_nu) + 0.5) * np.pi / n_nu - np.pi / 2
 
     phi_mesh, nu_mesh = np.meshgrid(phi_rg, nu_rg)
     return phi_mesh, nu_mesh
@@ -158,7 +157,7 @@ class MelAEMGenerator(object):
         n_phi: int = None,
         n_nu: int = None,
         batch_size: int = None,
-        device: str = "cuda",
+        device: str = "cpu",
         show_progress: bool = False,
         to_db: bool = False,
         channel_order: str = DEFAULT_ORDERING,
@@ -261,6 +260,7 @@ class MelAEMGenerator(object):
 
             decoded_mel = decoded_mel.reshape(-1, *self.frame_shape)[:n_frames]
 
+        decoded_mel = decoded_mel.numpy()
         if self.to_db:
             return amplitude_to_db(decoded_mel)
         else:
