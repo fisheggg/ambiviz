@@ -97,48 +97,30 @@ class AEMGenerator(object):
         """
         assert len(audio.shape) == 2
 
-        # frame the audio into ((n_batchs), n_frames, self.frame_length, n_harmonics)
-        audio = np.copy(audio)
+        # (n_frames, frame_length, n_harmonics), a strided view without copying
         data = frame(
             audio, frame_length=self.frame_length, hop_length=self.hop_length, axis=0
         )
-        n_frames = data.shape[0]
-        if self.batch_size is not None:
-            # pad the data to make it divisible by batch_size
-            n_pad = self.batch_size - (data.shape[0] % self.batch_size)
-            data = np.pad(data, ((0, n_pad), (0, 0), (0, 0)), mode="constant")
-            data = frame(
-                data, frame_length=self.batch_size, hop_length=self.batch_size, axis=0
-            )
+        # float64: quiet directions are small differences of large quadratic-form terms
+        sph_mat = self.decoder.sph_mat.double()
+        batch_size = self.batch_size or len(data)
+        range_ = range(0, len(data), batch_size)
+        if self.show_progress:
+            range_ = tqdm(range_, desc="Decoding batches")
 
-        # decoded final shape: (n_frames, n_speakers)
-        if self.batch_size is not None:
-            # decoded init shape: ((n_batchs), n_frames, frame_length, n_speakers)
-            decoded = np.zeros((data.shape[0], self.batch_size, self.n_speakers))
-            range_ = range(data.shape[0])
-            if self.show_progress:
-                range_ = tqdm(range_, desc="Decoding batches")
+        # Projection decoding is linear, so each speaker's mean power is
+        # Y_s · C · Y_sᵀ with C the frame's channel covariance; no decoded signals needed.
+        decoded = []
+        for start in range_:
+            data_in = torch.from_numpy(
+                np.ascontiguousarray(data[start : start + batch_size])
+            ).to(sph_mat)
+            cov = data_in.transpose(1, 2) @ data_in / self.frame_length
+            power = torch.einsum("sc,fcd,sd->fs", sph_mat, cov, sph_mat)
+            decoded.append(power.clamp(min=0).sqrt().cpu().numpy())
 
-            # print(f"=> memory before decoding: {torch.cuda.memory_summary()}")
-            # actual decoding and rms computation
-            for i in range_:
-                data_in = torch.from_numpy(data[i, :, :, :])
-                if self.gpu:
-                    data_in = data_in.cuda()
-                decoded[i, :, :] = np.sqrt(
-                    np.mean(self.decoder.decode(data_in).cpu().numpy() ** 2, axis=1)
-                )
-                del data_in
-
-            # reshape to (n_frames, n_phi, n_nu)
-            decoded = decoded.reshape(-1, *self.frame_shape)[:n_frames]
-
-        else:
-            decoded = self.decoder.decode(data)
-            # compute rms
-            decoded = np.sqrt(decoded.mean(decoded**2, axis=1))
-            # reshape to (n_frames, n_phi, n_nu)
-            decoded = decoded.reshape(decoded.shape[0], *self.frame_shape)
+        # reshape to (n_frames, n_phi, n_nu)
+        decoded = np.concatenate(decoded).reshape(-1, *self.frame_shape)
 
         logger.debug(f"Decoded shape: {decoded.shape}")
         if self.to_db:

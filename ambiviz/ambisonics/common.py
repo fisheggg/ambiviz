@@ -224,8 +224,15 @@ def spherical_harmonics_matrix(
         [isinstance(p, Position) for p in positions]
     )
 
+    phi = np.array([p.phi for p in positions])
+    nu = np.array([p.nu for p in positions])
     num_channels = int((max_order + 1) ** 2)
-    Y = np.zeros((len(positions), num_channels))
-    for i, p in enumerate(positions):
-        Y[i] = spherical_harmonics(p, max_order, ordering, normalization)
-    return Y
+    return np.stack(
+        [
+            spherical_harmonic_mn(
+                *index_to_degree_order(i, ordering), phi, nu, normalization
+            )
+            for i in range(num_channels)
+        ],
+        axis=1,
+    )
