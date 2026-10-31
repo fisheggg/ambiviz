@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from .common import AmbiFormat, spherical_harmonics_matrix
+from .common import AmbiFormat, normalization_factor, spherical_harmonics_matrix
 from .position import Position
 
 DECODING_METHODS = ["projection", "pseudoinv"]
@@ -38,6 +38,18 @@ class AmbiDecoder(object):
             ambi_format.ordering,
             ambi_format.normalization,
         )
+        if method == "projection":
+            # Weight channels so every exchange format yields the ACN/SN3D projection beams.
+            self.sph_mat *= [
+                (
+                    normalization_factor(i, ambi_format.ordering, "SN3D")
+                    / normalization_factor(
+                        i, ambi_format.ordering, ambi_format.normalization
+                    )
+                )
+                ** 2
+                for i in range(self.sph_mat.shape[1])
+            ]
         self.sph_mat = torch.from_numpy(self.sph_mat).to(dtype=torch.float32)
 
         self.method = method

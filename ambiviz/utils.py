@@ -89,9 +89,9 @@ def read_exchange_format_from_metadata(
             audio_file.seek(next_chunk)
 
     if is_b_format:
-        if (
-            channel_order not in (None, "FURSE_MALHAM")
-            or normalization not in (None, "MAX_N")
+        if channel_order not in (None, "FURSE_MALHAM") or normalization not in (
+            None,
+            "MAX_N",
         ):
             raise ValueError("iXML metadata conflicts with the WAV B-format GUID.")
         return "FURSE_MALHAM", "MAX_N"

@@ -1,5 +1,6 @@
 """Unit and integration tests for ambiviz.anglegram."""
 
+import importlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -9,6 +10,9 @@ import numpy as np
 import pytest
 
 from ambiviz.anglegram import anglegram, compute_anglegram_from_aem
+
+# The re-exported anglegram function shadows this module, breaking string patch paths on 3.10.
+anglegram_module = importlib.import_module("ambiviz.anglegram")
 
 # Real test files (used by integration tests)
 TEST_FILES_DIR = Path(__file__).parent.parent / "test_files"
@@ -129,7 +133,7 @@ def test_anglegram_argmax_mode(mode, db_threshold):
     _, phi, nu, energy = compute_anglegram_from_aem(
         time_stamp=timestamp, phi_mesh=phi_mesh, nu_mesh=nu_mesh, aem=aem
     )
-    with patch("ambiviz.anglegram.compute_aem", return_value=data):
+    with patch.object(anglegram_module, "compute_aem", return_value=data):
         axes = anglegram(
             "audio.wav",
             db_threshold=db_threshold,
@@ -166,8 +170,9 @@ def test_anglegram_full_mode(reverse_azimuth, db_threshold):
     if reverse_azimuth:
         azimuth = azimuth[::-1]
     phi_mesh, nu_mesh = np.meshgrid(azimuth, [-np.pi / 2, np.pi / 2])
-    with patch(
-        "ambiviz.anglegram.compute_aem",
+    with patch.object(
+        anglegram_module,
+        "compute_aem",
         return_value=(aem, timestamp, phi_mesh, nu_mesh),
     ):
         axes = anglegram(
@@ -221,7 +226,11 @@ def test_anglegram_full_mode(reverse_azimuth, db_threshold):
             axes[0].get_yticks(), np.array([-1, -0.5, 0, 0.5, 1]) * np.pi
         )
         assert [label.get_text() for label in axes[0].get_yticklabels()] == [
-            r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"
+            r"$-\pi$",
+            r"$-\pi/2$",
+            r"$0$",
+            r"$\pi/2$",
+            r"$\pi$",
         ]
         assert axes[1].get_ylabel() == "Elevation (rad)"
         assert axes[0].figure._suptitle.get_text() == "Full map"
@@ -235,15 +244,15 @@ def test_anglegram_full_mode(reverse_azimuth, db_threshold):
 
 
 def test_anglegram_invalid_mode():
-    with patch("ambiviz.anglegram.compute_aem") as compute:
+    with patch.object(anglegram_module, "compute_aem") as compute:
         with pytest.raises(ValueError, match="mode must be 'argmax' or 'full'"):
             anglegram("audio.wav", mode="invalid")
         compute.assert_not_called()
 
 
 def test_anglegram_full_single_frame():
-    with patch(
-        "ambiviz.anglegram.compute_aem", return_value=_make_aem_data(n_frames=1)
+    with patch.object(
+        anglegram_module, "compute_aem", return_value=_make_aem_data(n_frames=1)
     ):
         axes = anglegram("audio.wav", mode="full", fps=4)
     try:
@@ -256,7 +265,7 @@ def test_anglegram_full_single_frame():
 
 def test_anglegram_full_mode_save(tmp_path):
     save_path = tmp_path / "full.png"
-    with patch("ambiviz.anglegram.compute_aem", return_value=_make_aem_data()):
+    with patch.object(anglegram_module, "compute_aem", return_value=_make_aem_data()):
         try:
             result = anglegram("audio.wav", mode="full", save_path=save_path)
             assert result is None

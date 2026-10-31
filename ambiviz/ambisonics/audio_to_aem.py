@@ -79,10 +79,6 @@ def compute_aem(
     logger.debug(
         f"Using channel order: {channel_order}, normalization: {normalization} for AEM computation."
     )
-    if channel_order != "ACN" or normalization != "SN3D":
-        raise NotImplementedError(
-            f"Only ACN channel order and SN3D normalization are currently supported for AEM computation, but got {channel_order}/{normalization}."
-        )
 
     # Determine hop length
     _, sr = librosa.load(audio_path, mono=False, sr=None, duration=1)
