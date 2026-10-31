@@ -226,7 +226,11 @@ def test_anglegram_full_mode(reverse_azimuth, db_threshold):
             axes[0].get_yticks(), np.array([-1, -0.5, 0, 0.5, 1]) * np.pi
         )
         assert [label.get_text() for label in axes[0].get_yticklabels()] == [
-            r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"
+            r"$-\pi$",
+            r"$-\pi/2$",
+            r"$0$",
+            r"$\pi/2$",
+            r"$\pi$",
         ]
         assert axes[1].get_ylabel() == "Elevation (rad)"
         assert axes[0].figure._suptitle.get_text() == "Full map"
@@ -248,8 +252,7 @@ def test_anglegram_invalid_mode():
 
 def test_anglegram_full_single_frame():
     with patch.object(
-        anglegram_module,
-        "compute_aem", return_value=_make_aem_data(n_frames=1)
+        anglegram_module, "compute_aem", return_value=_make_aem_data(n_frames=1)
     ):
         axes = anglegram("audio.wav", mode="full", fps=4)
     try:
